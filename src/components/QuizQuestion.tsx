@@ -95,11 +95,29 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
         </CardHeader>
         
         <CardContent className="space-y-3">
-          <div className="mb-4 text-sm text-muted-foreground">
-            {question.correctAnswers.length > 1 ? 
-              `Selecciona ${question.correctAnswers.length} opciones correctas:` : 
-              'Selecciona la opción correcta:'
-            }
+          <div className="mb-4 p-3 bg-accent/50 rounded-lg border border-accent">
+            <div className="text-sm font-medium text-accent-foreground">
+              {question.correctAnswers.length > 1 ? (
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-6 h-6 bg-primary text-primary-foreground rounded-full text-xs font-bold">
+                    {question.correctAnswers.length}
+                  </span>
+                  <span>Selecciona exactamente {question.correctAnswers.length} opciones correctas</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-6 h-6 bg-primary text-primary-foreground rounded-full text-xs font-bold">
+                    1
+                  </span>
+                  <span>Selecciona la opción correcta</span>
+                </div>
+              )}
+            </div>
+            {question.correctAnswers.length > 1 && (
+              <div className="mt-2 text-xs text-muted-foreground">
+                {selectedAnswers.length} de {question.correctAnswers.length} seleccionadas
+              </div>
+            )}
           </div>
           {question.allOptions.map((option, index) => (
             <Button
