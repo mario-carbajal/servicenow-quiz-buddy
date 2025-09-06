@@ -25,19 +25,40 @@ export const parseExcelFile = (file: File): Promise<Question[]> => {
           if (!row || row.length < 5 || !row[0]) continue;
           
           const question = row[0]?.toString().trim();
-          const correctAnswer = row[1]?.toString().trim();
-          const incorrectAnswer1 = row[2]?.toString().trim();
-          const incorrectAnswer2 = row[3]?.toString().trim();
-          const incorrectAnswer3 = row[4]?.toString().trim();
+          const option1 = row[1]?.toString().trim();
+          const option2 = row[2]?.toString().trim();
+          const option3 = row[3]?.toString().trim();
+          const option4 = row[4]?.toString().trim();
           
-          if (question && correctAnswer && incorrectAnswer1 && incorrectAnswer2 && incorrectAnswer3) {
-            const incorrectAnswers = [incorrectAnswer1, incorrectAnswer2, incorrectAnswer3];
-            const allOptions = [correctAnswer, ...incorrectAnswers].sort(() => Math.random() - 0.5);
+          if (question && option1 && option2 && option3 && option4) {
+            const allAnswers = [option1, option2, option3, option4];
+            const correctAnswers: string[] = [];
+            const incorrectAnswers: string[] = [];
+            
+            // Detect correct answers marked with * at the end
+            allAnswers.forEach(answer => {
+              if (answer.endsWith('*')) {
+                correctAnswers.push(answer.slice(0, -1).trim());
+              } else {
+                incorrectAnswers.push(answer);
+              }
+            });
+            
+            // If no * markers found, assume first answer is correct (backward compatibility)
+            if (correctAnswers.length === 0) {
+              correctAnswers.push(option1);
+              incorrectAnswers.push(option2, option3, option4);
+            }
+            
+            // All options without the * marker for display
+            const allOptions = allAnswers.map(answer => 
+              answer.endsWith('*') ? answer.slice(0, -1).trim() : answer
+            ).sort(() => Math.random() - 0.5);
             
             questions.push({
               id: `q_${i}_${Date.now()}`,
               question,
-              correctAnswer,
+              correctAnswers,
               incorrectAnswers,
               allOptions
             });

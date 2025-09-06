@@ -1,7 +1,7 @@
 export interface Question {
   id: string;
   question: string;
-  correctAnswer: string;
+  correctAnswers: string[];
   incorrectAnswers: string[];
   allOptions: string[];
 }
@@ -9,7 +9,7 @@ export interface Question {
 export interface QuizSession {
   questions: Question[];
   currentQuestionIndex: number;
-  answers: Record<string, string>;
+  answers: Record<string, string[]>;
   mode: 'practice' | 'exam';
   startTime: number;
   endTime?: number;
@@ -23,8 +23,8 @@ export interface QuizStats {
   timeSpent: number;
   incorrectQuestions: Array<{
     question: string;
-    correctAnswer: string;
-    userAnswer: string;
+    correctAnswers: string[];
+    userAnswers: string[];
   }>;
   score: number;
 }

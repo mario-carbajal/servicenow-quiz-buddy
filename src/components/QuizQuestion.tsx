@@ -9,8 +9,8 @@ interface QuizQuestionProps {
   question: Question;
   questionNumber: number;
   totalQuestions: number;
-  selectedAnswer: string | null;
-  onAnswerSelect: (answer: string) => void;
+  selectedAnswers: string[];
+  onAnswerSelect: (answers: string[]) => void;
   showResult: boolean;
   isCorrect: boolean | null;
   mode: 'practice' | 'exam';
@@ -21,7 +21,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
   question,
   questionNumber,
   totalQuestions,
-  selectedAnswer,
+  selectedAnswers,
   onAnswerSelect,
   showResult,
   isCorrect,
@@ -38,18 +38,28 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
 
   const getOptionVariant = (option: string) => {
     if (!showResult) {
-      return selectedAnswer === option ? 'default' : 'quiz';
+      return selectedAnswers.includes(option) ? 'default' : 'quiz';
     }
 
-    if (option === question.correctAnswer) {
+    if (question.correctAnswers.includes(option)) {
       return 'quiz-correct';
     }
     
-    if (selectedAnswer === option && selectedAnswer !== question.correctAnswer) {
+    if (selectedAnswers.includes(option) && !question.correctAnswers.includes(option)) {
       return 'quiz-incorrect';
     }
 
     return 'quiz';
+  };
+
+  const handleOptionClick = (option: string) => {
+    if (showResult) return;
+    
+    const newAnswers = selectedAnswers.includes(option)
+      ? selectedAnswers.filter(ans => ans !== option)
+      : [...selectedAnswers, option];
+    
+    onAnswerSelect(newAnswers);
   };
 
   return (
@@ -85,12 +95,18 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
         </CardHeader>
         
         <CardContent className="space-y-3">
+          <div className="mb-4 text-sm text-muted-foreground">
+            {question.correctAnswers.length > 1 ? 
+              `Selecciona ${question.correctAnswers.length} opciones correctas:` : 
+              'Selecciona la opción correcta:'
+            }
+          </div>
           {question.allOptions.map((option, index) => (
             <Button
               key={index}
               variant={getOptionVariant(option) as any}
               className="w-full h-auto p-4 text-left justify-start whitespace-normal text-wrap"
-              onClick={() => !showResult && onAnswerSelect(option)}
+              onClick={() => handleOptionClick(option)}
               disabled={showResult}
             >
               <div className="flex items-start gap-3 w-full">
@@ -99,11 +115,11 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                 </span>
                 <span className="flex-1">{option}</span>
                 
-                {showResult && option === question.correctAnswer && (
+                {showResult && question.correctAnswers.includes(option) && (
                   <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
                 )}
                 
-                {showResult && selectedAnswer === option && selectedAnswer !== question.correctAnswer && (
+                {showResult && selectedAnswers.includes(option) && !question.correctAnswers.includes(option) && (
                   <XCircle className="w-5 h-5 text-destructive flex-shrink-0" />
                 )}
               </div>
@@ -128,7 +144,8 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                 </p>
                 {!isCorrect && (
                   <p className="text-sm opacity-90">
-                    La respuesta correcta es: <strong>{question.correctAnswer}</strong>
+                    {question.correctAnswers.length > 1 ? 'Las respuestas correctas son: ' : 'La respuesta correcta es: '}
+                    <strong>{question.correctAnswers.join(', ')}</strong>
                   </p>
                 )}
               </div>

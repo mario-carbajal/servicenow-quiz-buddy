@@ -30,9 +30,9 @@ export const QuizStats: React.FC<QuizStatsProps> = ({
 
   const exportResults = () => {
     const csvContent = [
-      ['Pregunta', 'Respuesta Correcta', 'Tu Respuesta'].join(','),
+      ['Pregunta', 'Respuestas Correctas', 'Tus Respuestas'].join(','),
       ...stats.incorrectQuestions.map(q => 
-        [q.question, q.correctAnswer, q.userAnswer].map(field => 
+        [q.question, q.correctAnswers.join('; '), q.userAnswers.join('; ')].map(field => 
           `"${field.replace(/"/g, '""')}"`
         ).join(',')
       )
@@ -125,11 +125,15 @@ export const QuizStats: React.FC<QuizStatsProps> = ({
                 <div className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-success" />
-                    <span>Correcto: <strong>{item.correctAnswer}</strong></span>
+                    <span>{item.correctAnswers.length > 1 ? 'Correctas: ' : 'Correcto: '}
+                      <strong>{item.correctAnswers.join(', ')}</strong>
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <XCircle className="w-4 h-4 text-destructive" />
-                    <span>Tu respuesta: <strong>{item.userAnswer}</strong></span>
+                    <span>{item.userAnswers.length > 1 ? 'Tus respuestas: ' : 'Tu respuesta: '}
+                      <strong>{item.userAnswers.join(', ') || 'Sin respuesta'}</strong>
+                    </span>
                   </div>
                 </div>
               </div>

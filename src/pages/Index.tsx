@@ -16,7 +16,7 @@ const Index = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
-  const [currentAnswer, setCurrentAnswer] = useState<string | null>(null);
+  const [currentAnswers, setCurrentAnswers] = useState<string[]>([]);
   const [showResult, setShowResult] = useState(false);
   const [quizStats, setQuizStats] = useState<QuizStatsType | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | undefined>(undefined);
@@ -65,7 +65,7 @@ const Index = () => {
     };
 
     setQuizSession(session);
-    setCurrentAnswer(null);
+    setCurrentAnswers([]);
     setShowResult(false);
     setAppState('quiz');
 
@@ -82,30 +82,30 @@ const Index = () => {
     });
   }, [questions]);
 
-  const handleAnswerSelect = useCallback((answer: string) => {
+  const handleAnswerSelect = useCallback((answers: string[]) => {
     if (!quizSession) return;
 
-    setCurrentAnswer(answer);
+    setCurrentAnswers(answers);
     
     if (quizSession.mode === 'practice') {
       setShowResult(true);
-      // Auto-advance after 2 seconds in practice mode
+      // Auto-advance after 3 seconds in practice mode
       setTimeout(() => {
-        handleNextQuestion(answer);
-      }, 2000);
+        handleNextQuestion(answers);
+      }, 3000);
     }
   }, [quizSession]);
 
-  const handleNextQuestion = useCallback((answer?: string) => {
+  const handleNextQuestion = useCallback((answers?: string[]) => {
     if (!quizSession) return;
 
-    const answerToSave = answer || currentAnswer;
-    if (!answerToSave) return;
+    const answersToSave = answers || currentAnswers;
+    if (!answersToSave || answersToSave.length === 0) return;
 
     const currentQuestion = quizSession.questions[quizSession.currentQuestionIndex];
     const updatedAnswers = {
       ...quizSession.answers,
-      [currentQuestion.id]: answerToSave
+      [currentQuestion.id]: answersToSave
     };
 
     const isLastQuestion = quizSession.currentQuestionIndex >= quizSession.questions.length - 1;
@@ -120,7 +120,7 @@ const Index = () => {
       };
 
       setQuizSession(updatedSession);
-      setCurrentAnswer(null);
+      setCurrentAnswers([]);
       setShowResult(false);
 
       // Save progress
@@ -130,9 +130,9 @@ const Index = () => {
         lastUpdated: Date.now()
       });
     }
-  }, [quizSession, currentAnswer]);
+  }, [quizSession, currentAnswers]);
 
-  const handleQuizComplete = useCallback((finalAnswers?: Record<string, string>) => {
+  const handleQuizComplete = useCallback((finalAnswers?: Record<string, string[]>) => {
     if (!quizSession) return;
 
     const answers = finalAnswers || quizSession.answers;
@@ -143,14 +143,20 @@ const Index = () => {
     const incorrectQuestions: QuizStatsType['incorrectQuestions'] = [];
 
     quizSession.questions.forEach(question => {
-      const userAnswer = answers[question.id];
-      if (userAnswer === question.correctAnswer) {
+      const userAnswers = answers[question.id] || [];
+      
+      // Check if all correct answers are selected and no incorrect ones
+      const isFullyCorrect = question.correctAnswers.length === userAnswers.length &&
+        question.correctAnswers.every(correct => userAnswers.includes(correct)) &&
+        userAnswers.every(user => question.correctAnswers.includes(user));
+      
+      if (isFullyCorrect) {
         correctCount++;
-      } else if (userAnswer) {
+      } else if (userAnswers.length > 0) {
         incorrectQuestions.push({
           question: question.question,
-          correctAnswer: question.correctAnswer,
-          userAnswer
+          correctAnswers: question.correctAnswers,
+          userAnswers
         });
       }
     });
@@ -183,14 +189,17 @@ const Index = () => {
     setQuestions([]);
     setQuizSession(null);
     setQuizStats(null);
-    setCurrentAnswer(null);
+    setCurrentAnswers([]);
     setShowResult(false);
     setTimeRemaining(undefined);
     clearQuizProgress();
   }, []);
 
   const currentQuestion = quizSession?.questions[quizSession.currentQuestionIndex];
-  const isCorrect = currentAnswer === currentQuestion?.correctAnswer;
+  const isCorrect = currentQuestion ? 
+    currentQuestion.correctAnswers.length === currentAnswers.length &&
+    currentQuestion.correctAnswers.every(correct => currentAnswers.includes(correct)) &&
+    currentAnswers.every(user => currentQuestion.correctAnswers.includes(user)) : false;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-primary/5">
@@ -338,7 +347,7 @@ const Index = () => {
               question={currentQuestion}
               questionNumber={quizSession.currentQuestionIndex + 1}
               totalQuestions={quizSession.questions.length}
-              selectedAnswer={currentAnswer}
+              selectedAnswers={currentAnswers}
               onAnswerSelect={handleAnswerSelect}
               showResult={showResult}
               isCorrect={isCorrect}
@@ -347,7 +356,7 @@ const Index = () => {
             />
 
             {/* Next Button for Exam Mode */}
-            {quizSession.mode === 'exam' && currentAnswer && !showResult && (
+            {quizSession.mode === 'exam' && currentAnswers.length > 0 && !showResult && (
               <div className="text-center">
                 <Button onClick={() => handleNextQuestion()} variant="hero" size="lg">
                   {quizSession.currentQuestionIndex < quizSession.questions.length - 1 
