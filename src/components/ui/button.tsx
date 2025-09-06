@@ -9,15 +9,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+        hero: "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground hover:shadow-lg hover:shadow-primary/25 transform hover:-translate-y-0.5 transition-all duration-300",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-sm hover:shadow-success/25",
         outline:
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        quiz: "bg-card border-2 border-border text-card-foreground hover:border-primary/50 hover:shadow-md transition-all duration-200",
+        "quiz-correct": "bg-success-light border-2 border-success text-success hover:shadow-success/25",
+        "quiz-incorrect": "bg-destructive-light border-2 border-destructive text-destructive hover:shadow-destructive/25",
       },
       size: {
         default: "h-10 px-4 py-2",
